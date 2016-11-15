@@ -1,9 +1,9 @@
 CC = gcc
 CFLAGS1 = -g -Wall
 CFLAGS2 = -lncurses -Iinclude/
-OBJFILES = *.o
+OBJFILES = main.o main_funcs.o
 
-APP:	main.o main_funcs.o
+APP:	$(OBJFILES)
 	gcc -o APP $(CFLAGS1) $(OBJFILES) $(CFLAGS2)
 
 %.o: src/%.c
