@@ -20,6 +20,8 @@ WINDOW *init_mainwind()
         local_win = create_newwin(LINES-3,COLS-2,1,1);
 	box(local_win,0,0);
 	wrefresh(local_win);
+
+	return local_win;
 }
 
 WINDOW *init_menuwind()
@@ -30,4 +32,6 @@ WINDOW *init_menuwind()
 	wprintw(local_win,"[F1]: MENU_1     [F2]: MENU_2     [F3]: MENU_3     .....");
 	
 	wrefresh(local_win);
+
+	return local_win;
 }

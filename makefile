@@ -1,15 +1,13 @@
 CC = gcc
-CFLAGS = -lncurses -Iinclude/
+CFLAGS1 = -g -Wall
+CFLAGS2 = -lncurses -Iinclude/
 OBJFILES = main.o main_funcs.o
 
-APP:	main.o main_funcs.o
-	gcc -o APP -g -Wall main.o main_funcs.o -lncurses
+APP:	$(OBJFILES)
+	gcc -o APP $(CFLAGS1) $(OBJFILES) $(CFLAGS2)
 
-main.o: src/main.c
-	gcc -o main.o -g -Wall -c src/main.c -lncurses -Iinclude/
-
-main_funcs.o:  src/main_funcs.c
-	gcc -o main_funcs.o -g -Wall -c src/main_funcs.c -lncurses -Iinclude/
+%.o: src/%.c
+	$(CC) -o $@ $(CFLAGS1) -c $< $(CFLAGS2)
 
 clean:
 	rm *.o APP
