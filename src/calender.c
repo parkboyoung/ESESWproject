@@ -1,214 +1,40 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<termios.h>
-#include<string.h>
-#include<curses.h>
+#include "calender.h"
 
-int mygetch();
-void gotoxy(int,int);
-int allDayCheck(int,int);
-int yearCheck(int);
-void printCalender(int,int);
-void printCalenderDay(int,int,int);
-int dayCheck(int);
-int inputChar(int *,int*);
-int main(void)
+void calender_init (int *iyear, int *imonth)
 {
- 	int year = 2016;
- 	int month = 11;
- 	int num=0,all_days = 0;
- 	int res;
-	while(1)
- 	{
-		initscr();
-		printCalender(year,month);
-
-  		all_days =  allDayCheck(year,month) + 1;
-  		num = dayCheck(all_days);
-  		printCalenderDay(num,month,year);
-  		printw("\n");
-
-  		res = inputChar(&year,&month);
-  		if(res == -1)
-  		{
-   			break;
-  		}
-		endwin();
- 	}
-	endwin();
-
+	time_t time_raw = time(NULL);
+	struct tm *time_inf = localtime(&time_raw);
+	
+	*iyear = time_inf->tm_year + 1900;
+	*imonth = time_inf->tm_mon + 1;
 }
 
-int inputChar(int *year,int *month)
+void calender_refresh (WINDOW *target_wind, int year, int month)
 {
- 	char ch;
-	ch = mygetch();
- 	if(ch == 'w'|| ch == 'W')
- 	{
-  		system("clear");
-  		*year = *year -1;
- 	}
- 	else if(ch == 'a'|| ch == 'A')
- 	{
-  		system("clear");
-  		if(*month == 1)
-  		{
-   			*year = *year -1;
-   			*month = 12;
-  		}
-  		else
-  		{
-   			*month = *month - 1;
-  		}
- 	}
- 	else if(ch == 's' || ch == 'S')
- 	{
-  		system("clear");
-  		*year = *year + 1;
- 	}
- 	else if(ch == 'd' || ch == 'D')
- 	{
-  		system("clear");
-  		if(*month == 12)
-  		{
-   			*year = *year + 1;
-   			*month = 1;
-  		}
-  		else
-  		{
-   			*month = *month + 1;
-  		}
- 	}
- 	else if(ch = 27)
- 	{
-  		return -1;
- 	}
- 	return 0;
+	int days_check = 0;
+	//int day = time_inf->tm_mday;
+	//mvwprintw(target_wind,2,5,"[%d %d %d]",year,month,day);
+
+	// while
+
+	calender_print_calender(target_wind,year,month);
+	days_check = calender_allDayCheck(year,month);
+	calender_printCalenderDay(target_wind,days_check,month,year);
+
+	wrefresh(target_wind);
+
+	//endofwhile
 }
 
-void printCalenderDay(int num,int month,int year)
+void calender_print_calender(WINDOW *target_wind,int year,int month)
 {
- 	int i,j=8,count = 0;
- 	int months[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
- 	for(i=1;i<=months[month-1];i++)
- 	{
-  		while(1)
-  		{
-   			if(num==0)
-   			{
-    				j++;
-   			}
-   			if(i==months[month-1]+1)
-   			{
-    				if(yearCheck(year) == 1 && month==2)
-    				{
-     					if(num == 0)
-     					{
-      						gotoxy(25,j);
-      						printw("%2d",i);
-     					}
-     					else if(num != 0)
-     					{
-      						printw("%5d",i);
-     					}
-    				}
-    				break;
-   			}
-   			if(num==0)// start
-   			{
-    				gotoxy(25,j);
-    				num++;
-    				printw("%2d",i);
-    				i++;
-   			}
-   			else if(num == 1)
-   			{
-    				gotoxy(30,j);
-    				num++;
-    				printw("%2d",i);
-    				i++;
-   			}
-   			else if(num == 2)
-   			{
-    				gotoxy(35,j);
-    				num++;
-    				printw("%2d",i);
-    				i++;
-   			}
-   			else if(num == 3)
-   			{
-    				gotoxy(40,j);
-    				num++;
-    				printw("%2d",i);
-    				i++;
-   			}
-   			else if(num == 4)
-   			{
-    				gotoxy(45,j);
-    				num++;
-    				printw("%2d",i);
-    				i++;
-   			}
-   			else if(num == 5)
-   			{
-    				gotoxy(50,j);
-    				num++;
-    				printw("%2d",i);
-    				i++;
-  			}
-   			else if(num == 6)
-   			{
-    				gotoxy(55,j);
-    				num = 0;
-    				printw("%2d",i);
-    				i++;
-   			}
-  		}
- 	}
+ 	mvwprintw(target_wind,3,(COLS-2-9)/2,"[%4d/%2d]",year,month);
+ 	mvwprintw(target_wind,4,(COLS-2-33)/2,"=================================");
+ 	mvwprintw(target_wind,5,(COLS-2-33)/2,"SUN  MON  TUE  WED  THU  FRI  SAT");
+ 	mvwprintw(target_wind,6,(COLS-2-33)/2,"=================================");
 }
 
-int dayCheck(int days)
-{
-	switch(days % 7)
- 	{
-  		case 0:return 0; break; //일요일
-  		case 1:return 1; break; //월요일
-  		case 2:return 2; break; //화요일
-  		case 3:return 3; break; //수요일
-  		case 4:return 4; break; //목요일
-  		case 5:return 5; break; //금요일
-  		case 6:return 6; break; //토요일
- 	}
- 	return 0;
-}
-void printCalender(int year,int month)
-{
-
- 	gotoxy(35,4);
- 	printw("[%4d . %2d]",year,month);
- 	gotoxy(24,5);
- 	printw("=================================\n");
-	gotoxy(24,6);
- 	printw("SUN");
- 	gotoxy(29,6);
- 	printw("MON");
- 	gotoxy(34,6);
- 	printw("TUE");
- 	gotoxy(39,6);
- 	printw("WED");
- 	gotoxy(44,6);
- 	printw("THU");
- 	gotoxy(49,6);
- 	printw("FRI");
-	gotoxy(54,6);
- 	printw("SAT");
-	gotoxy(24,7);
- 	printw("=================================\n");
-
-}
-
-int allDayCheck(int year,int month)
+int calender_allDayCheck(int year,int month)
 {
  	int all_year=0;
  	int all_month=0;
@@ -218,7 +44,7 @@ int allDayCheck(int year,int month)
 
  	for(i=1;i<year;i++)
  	{
-  		if((res = yearCheck(i)) == 1)
+  		if((res = calender_yearCheck(i)) == 1)
   		{
    			all_year = all_year + 366; //all_year = all_year + 366
   		}
@@ -233,13 +59,14 @@ int allDayCheck(int year,int month)
   		all_month += months[i];
  	}
  	days = all_year + all_month;
- 	if(yearCheck(year) == 1 && i>=2)
+ 	if(calender_yearCheck(year) == 1 && i>=2)
  	{
   		days++;
 	}
- 	return days;
+ 	return (days+1)%7;
 }
-int yearCheck(int year)
+
+int calender_yearCheck(int year)
 {
  	if(year % 4 == 0)
  	{
@@ -265,24 +92,76 @@ int yearCheck(int year)
  	}
 }
 
-void gotoxy(int x, int y)
+void calender_printCalenderDay(WINDOW *target_wind,int num,int month,int year)
 {
-	move(y,x);
-	refresh();
+	int i,j=7;
+ 	int months[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+ 	for(i=1;i<=months[month-1];i++)
+ 	{
+  		while(1)
+  		{
+   			if(num==0)
+   			{
+    				j++;
+   			}
+   			if(i==months[month-1]+1)
+   			{
+    				if(calender_yearCheck(year) == 1 && month==2)
+    				{
+     					if(num == 0)
+     					{
+      						mvwprintw(target_wind,j,(COLS-2-33)/2,"%2d",i);
+     					}
+     					else if(num != 0)
+     					{
+      						wprintw(target_wind,"%5d",i);
+     					}
+    				}
+    				break;
+   			}
+   			if(num==0)// start
+   			{
+    				num++;
+    				mvwprintw(target_wind,j,(COLS-2-33)/2,"%2d",i);
+    				i++;
+   			}
+   			else if(num == 1)
+   			{
+    				num++;
+    				mvwprintw(target_wind,j,(COLS-2-33)/2+5,"%2d",i);
+    				i++;
+   			}
+   			else if(num == 2)
+   			{
+    				num++;
+    				mvwprintw(target_wind,j,(COLS-2-33)/2+10,"%2d",i);
+    				i++;
+   			}
+   			else if(num == 3)
+   			{
+    				num++;
+    				mvwprintw(target_wind,j,(COLS-2-33)/2+15,"%2d",i);
+    				i++;
+   			}
+   			else if(num == 4)
+   			{
+    				num++;
+    				mvwprintw(target_wind,j,(COLS-2-33)/2+20,"%2d",i);
+    				i++;
+   			}
+   			else if(num == 5)
+   			{
+    				num++;
+    				mvwprintw(target_wind,j,(COLS-2-33)/2+25,"%2d",i);
+    				i++;
+  			}
+   			else if(num == 6)
+   			{
+    				num = 0;
+    				mvwprintw(target_wind,j,(COLS-2-33)/2+30,"%2d",i);
+    				i++;
+   			}
+  		}
+ 	}
 }
-int mygetch()
-{
-	int ch;
-	struct termios oldt;
-	struct termios newt;
 
-	tcgetattr(STDIN_FILENO,&oldt);
-
-	newt = oldt;
-	newt.c_lflag &= ~(ICANON|ECHO);
-	tcsetattr(STDIN_FILENO,TCSANOW,&newt);
-	ch = getchar();
-	tcsetattr(STDIN_FILENO,TCSANOW,&oldt);
-
-	return ch;
-}
