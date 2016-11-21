@@ -46,12 +46,9 @@ int main()
 		}
 		else
 		{
-			//endwin();
 			return 0;
 		}
-		
 	}
-	//endwin();
 	return 0;
 }
 int menu()
@@ -79,6 +76,9 @@ int menu()
 }
 void mInput(char* temp, struct Memo *ary, int * w_cnt)
 {
+	FILE *fp;
+	char subject2[50] = {0};
+
 	system("clear");
 	while (*w_cnt != 20)
 	{
@@ -93,6 +93,21 @@ void mInput(char* temp, struct Memo *ary, int * w_cnt)
 		printf("# Enter contents : ");
 		gets(temp);
 		strcpy(ary[*w_cnt].mean,temp);
+		
+		//make text-file
+		strcpy(subject2,ary[*w_cnt].title);
+		strcat(subject2,".txt");
+		fp = fopen(subject2,"w+");
+
+		if(fp==NULL)
+		{
+			exit(0);
+		}
+
+		fprintf(fp,"%s%s\n","Title :",ary[*w_cnt].title);
+		fprintf(fp,"%s%s\n","Contents : ",ary[*w_cnt].mean);
+		fclose(fp);
+        //
 		(*w_cnt)++;
 
 	}
@@ -154,6 +169,7 @@ void mSearch(char* temp, struct Memo *ary, int *w_cnt)
 void mDelete(char* temp, struct Memo *ary, int* w_cnt)
 {
 	int n=0;
+	char subject2[50] = {0};
 	char a;
 	system("clear");
 	while (1)
@@ -182,6 +198,11 @@ void mDelete(char* temp, struct Memo *ary, int* w_cnt)
 				{
 					if (a == 'Y')
 					{
+						//txt delete
+						strcpy(subject2,ary[n].title);
+						strcat(subject2,".txt");
+						unlink(subject2);
+			
 						for (i = n; i <= *w_cnt; i++)
 						{
 							strcpy(ary[i].title, ary[i + 1].title);
@@ -197,6 +218,10 @@ void mDelete(char* temp, struct Memo *ary, int* w_cnt)
 					}
 					else if (a == 'y')
 					{
+						strcpy(subject2,ary[n].title);
+						strcat(subject2,".txt");
+						unlink(subject2);
+			
 						for (i = n; i <= *w_cnt; i++)
 						{
 							strcpy(ary[i].title, ary[i + 1].title);
