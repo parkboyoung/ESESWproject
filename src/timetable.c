@@ -4,15 +4,13 @@
 #define TIME 9
 #define DATE 5
 
-int main()
+char table[TIME][DATE][10] = {0,};
+char *date[DATE] = {"MON", "TUE" , "WED","THU","FRI"};
+
+void write_timetable()
 {
-	FILE *out, *in;
-	
 	int i,j;
-	char table[TIME][DATE][10] = {0,};
-	char *date[DATE] = {"MON", "TUE" , "WED","THU","FRI"};
-	char buf[50] = "\0";
-	
+
 	for(j=0;j<DATE;j++)
 	{
 		system("clear");
@@ -24,14 +22,20 @@ int main()
 		}
 	}
 	system("clear");
+}
+void put_timetable()
+{
+	FILE *out;
+	int i,j;
+
 	out = fopen("timetable.txt","w");
-	
+
 	for(j=0;j<DATE;j++)
 	{
 		fprintf(out, "  %s  \t\t",date[j]);
 	}
 	fprintf(out,"\n");
-	
+
 	for(i = 0;i<TIME;i++)
 	{
 		for(j=0;j<5;j++)
@@ -41,12 +45,17 @@ int main()
 		fprintf(out,"\n");
 	}
 	fclose(out);
-	
-	in = fopen("timetable.txt","r");
-	
-	while(fgets(buf,sizeof(buf)-1,in) != 0)
-	{
-		fputs(buf,stdout);
-		fclose(in);
-	}
 }
+void read_timetable()
+{
+	FILE *in;
+	char buf = 0;
+
+	in = fopen("timetable.txt","r");
+	while((buf = fgetc(in)) != EOF)
+	{
+		putchar(buf);
+	}
+	fclose(in);
+}
+
