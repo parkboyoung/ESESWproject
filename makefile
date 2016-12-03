@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS1 = -g -Wall
 CFLAGS2 = -lncurses -Iinclude/
-OBJFILES = main.o main_funcs.o calender.o
+OBJFILES = main.o main_funcs.o calender.o memo.o shared_funcs.o timetable.o
 
 APP:	$(OBJFILES)
 	gcc -o APP $(CFLAGS1) $(OBJFILES) $(CFLAGS2)

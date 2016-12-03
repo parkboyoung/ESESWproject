@@ -5,6 +5,7 @@
 
 void calender_init (int *iyear, int *imonth);
 void calender_refresh (WINDOW *target_wind, int year, int month);
+void calender_refresh_menu (WINDOW *target_wind);
 void calender_print_calender(WINDOW *target_wind,int year,int month);
 int calender_allDayCheck(int year,int month);
 int calender_yearCheck(int year);

@@ -1,280 +1,153 @@
-#include <stdio.h>
-#include <curses.h>
-#include <string.h>
-#include <termios.h>
-#include <unistd.h>
-#include <stdlib.h>
+#include "memo.h"
+#include "shared_funcs.h"
 
-struct Memo
+void memo_refresh(WINDOW *target_wind, int *idx, int *idx_max)
 {
-        char title[50];//memo title
-        char mean[150];//memo content
-};
+	// 1. 메모 제목과 시간 표시
+	// 2. W와 S로 메모 이동
+	// 3. A입력시 메모추가, D 입력시 메모삭제
+	// 4. E입력시 메모읽기
 
-int menu();
-void mInput(char*, struct Memo *ary, int *);
-void mOutput(char*, struct Memo *ary, int *);
-void mSearch(char*, struct Memo *ary, int *);
-void mDelete(char*, struct Memo *ary, int *);
-int mygetch();
+	struct dirent *direnp;
+	DIR *dirp;
+	int subidx = -1;
 
-int main()
-{
-	struct Memo ary[50];
-	char temp[80] = { 0 };
-	int w_cnt = 0;
-	int m;
-	while (1)
+	mkdir("./.memo",0777);
+	dirp = opendir("./.memo");
+
+	mvwprintw(target_wind,2,(COLS-11)/2,"[MEMO LIST]");
+
+	while( (direnp = readdir(dirp)) != NULL )
 	{
-		//initscr();
-		m = menu();
-		if (m == 1)
+		memo_showtitle(target_wind, direnp->d_name, &subidx);
+	}
+
+	if (*idx > -1)
+	{
+		mvwprintw(target_wind,3+*idx,1,">");
+	}
+	
+	*idx_max = subidx;
+	closedir(dirp);
+	wrefresh(target_wind);
+
+}
+
+void memo_refresh_menu(WINDOW *target_wind)
+{
+	mvwprintw(target_wind,0,0,"W,S = Select Memo | A = Add | D = Delete | E = Read\nZ = Calender | X = Memo | C = Timetable | V = Alarm | ESC = Quit");
+	wrefresh(target_wind);
+}
+
+void memo_showtitle(WINDOW *target_wind, char *filename, int *subidx)
+{
+	char filename_cpd[128] = {0};
+	char *filename_date;
+	char *filename_title;
+
+	if ( strncmp(filename,"memo-",5) == 0 )
+	{
+		strcpy(filename_cpd,filename);
+		strtok(filename_cpd,"-");
+		filename_date = strtok(NULL,"-");
+		filename_title = strtok(NULL,"-");
+
+		(*subidx)++;
+		mvwprintw(target_wind,3+*subidx,2,"[%s] %02d) %s", filename_date, *subidx+1, filename_title);
+	}
+}
+
+void memo_add(WINDOW *target_wind)
+{
+	char title[64] = {0,};
+	char texts[256] = {0,};
+	char pth[128] = "./.memo/";
+	char timestr[12] = {0,};
+	int fd_write;
+	int t_year, t_month, t_day;
+	time_t time_raw = time(NULL);
+	struct tm *time_inf = localtime(&time_raw);
+	
+	t_year = time_inf->tm_year + 1900;
+	t_month = time_inf->tm_mon + 1;
+	t_day = time_inf->tm_mday;
+
+	time_to_str(t_year,t_month,t_day,timestr);
+
+	wclear(target_wind);
+	box(target_wind,0,0);
+
+	mvwprintw(target_wind,2,2,"[Title] ");
+	wrefresh(target_wind);
+	wgetnstr(target_wind,title,64);
+
+	mvwprintw(target_wind,3,2,"[Text]");
+	wmove(target_wind,4,2);
+	wrefresh(target_wind);
+	wgetnstr(target_wind,texts,256);
+
+	strcat(pth,"memo-");
+	strcat(pth,timestr);
+	strcat(pth,title);
+
+	fd_write = open(pth,O_WRONLY|O_CREAT|O_TRUNC,0666);
+	write(fd_write,texts,128);
+	close(fd_write);
+}
+
+void memo_delete(int *idx)
+{
+	struct dirent *direnp;
+	DIR *dirp;
+	int subidx = -1;
+	char pth[128] = "./.memo/";
+
+	dirp = opendir("./.memo");
+
+	while( (direnp = readdir(dirp)) != NULL && *idx != -1 )
+	{
+		if ( strncmp(direnp->d_name,"memo-",5) == 0 )
 		{
-			mInput(temp, ary, &w_cnt);
+			subidx++;
 		}
-		else if (m == 2)
+		if ( subidx == *idx)
 		{
-			mOutput(temp, ary, &w_cnt);
-		}
-		else if (m == 3)
-		{
-			mSearch(temp, ary, &w_cnt);
-		}
-		else if (m == 4)
-		{
-			mDelete(temp, ary, &w_cnt);
-		}
-		else
-		{
-			return 0;
+			*idx = -1;
+			remove(strcat(pth,direnp->d_name));
 		}
 	}
-	return 0;
 }
-int menu()
+
+void memo_read(WINDOW *target_wind, int *idx)
 {
-	int num; int n;
-	printf("\t\t\t  1. Memo add\n\t\t\t  2. Memo List\n\t\t\t  3. Memo Search\n\t\t\t  4. Memo Delete\n\t\t\t  5. Quit\n");
-	printf("\t\t# Please select a menu : ");
-	while (1)
+	struct dirent *direnp;
+	DIR *dirp;
+	int subidx = -1;
+	char pth[128] = "./.memo/";
+
+	char texts[256] = {0,};
+	int fd_read;
+
+	dirp = opendir("./.memo");
+
+	while( (direnp = readdir(dirp)) != NULL && *idx != -1 )
 	{
-		num = scanf("%d", &n);
-		if (num == 1)
+		if ( strncmp(direnp->d_name,"memo-",5) == 0 )
 		{
-			if (n / abs(n) != -1 && n<6)
-			{
-				if (getchar() == '\n')
-				{
-					break;
-				}
-			}
+			subidx++;
 		}
-		printf("Please re-enter\n");
-		while(getchar() != '\n');
-	}
-	return n;
-}
-void mInput(char* temp, struct Memo *ary, int * w_cnt)
-{
-	FILE *fp;
-	char subject2[50] = {0};
-
-	system("clear");
-	while (*w_cnt != 20)
-	{
-
-		printf("# Enter title(other menu:q) : ");
-		gets(temp);
-		if (strcmp(temp, "q") == 0)
+		if ( subidx == *idx)
 		{
-			break;
-		}
-		strcpy(ary[*w_cnt].title,temp);
-		printf("# Enter contents : ");
-		gets(temp);
-		strcpy(ary[*w_cnt].mean,temp);
-		
-		//make text-file
-		strcpy(subject2,ary[*w_cnt].title);
-		strcat(subject2,".txt");
-		fp = fopen(subject2,"w+");
-
-		if(fp==NULL)
-		{
-			exit(0);
-		}
-
-		fprintf(fp,"%s%s\n","Title :",ary[*w_cnt].title);
-		fprintf(fp,"%s%s\n","Contents : ",ary[*w_cnt].mean);
-		fclose(fp);
-        //
-		(*w_cnt)++;
-
-	}
-	system("clear");
-	return;
-}
-void mOutput(char* temp, struct Memo *ary, int *w_cnt)
-{
-	int n;
-	system("clear");
-	for (n = 1; n <= *w_cnt; n++)
-	{
-		printf("Title : %s\nContents : %s\n\n\n", ary[n - 1].title,ary[n-1].mean);
-
-	}
-	printf("# if you click any key, back to main menu ");
-	gets(temp);
-	system("clear");
-	return;
-}
-void mSearch(char* temp, struct Memo *ary, int *w_cnt)
-{
-	int i=0;
-	system("clear");
-	while (1)
-	{
-		printf("# enter the title you find(other menu:q) : ");
-		gets(temp);
-		if (strcmp(temp, "q") == 0)
-		{
-			printf("# if you click any key, back to main menu ");
-			break;
-		}
-		while(1)
-		{
-			if (i == 20)
-			{
-				printf("@ [%s] does not exist\n", temp);
-				i=0;
-				break;
-			}
-			if (strcmp(temp, ary[i].title) == 0)
-			{
-				printf("@ Title : %s \n@ Contents : %s\n", ary[i].title,ary[i].mean);//¸Þ¸ð ³»¿ë
-				i=0;
-				break;
-			}
-			else
-			{
-				i++;
-			}
-		}
-
-	}
-	mygetch();
-	system("clear");
-	return;
-}
-void mDelete(char* temp, struct Memo *ary, int* w_cnt)
-{
-	int n=0;
-	char subject2[50] = {0};
-	char a;
-	system("clear");
-	while (1)
-	{
-		int i;
-		printf("# enter the title you delete(other menu:q) : ");
-		gets(temp);
-		if(strcmp(temp,"q") == 0)
-		{
-			printf("# if you click any key, back to main menu");
-			break;
-		}
-		while(1)
-		{
-			if (n==20)
-			{
-				printf("@ [%s] does not exist.\n", temp);
-				n=0;
-				break;
-			}
-			if (strcmp(temp, ary[n].title) == 0)
-			{
-				printf("# Will you want to delete it? (Y/N) : ");
-				scanf("%c", &a);
-				if (a == 'N' || a == 'n' || a == 'y' || a == 'Y')
-				{
-					if (a == 'Y')
-					{
-						//txt delete
-						strcpy(subject2,ary[n].title);
-						strcat(subject2,".txt");
-						unlink(subject2);
+			//내용 표시
+			fd_read = open(strcat(pth,direnp->d_name),O_RDONLY);
+			read(fd_read,texts,256);
+			close(fd_read);
 			
-						for (i = n; i <= *w_cnt; i++)
-						{
-							strcpy(ary[i].title, ary[i + 1].title);
-							strcpy(ary[i].mean,ary[i+1].mean);
-							if (i == *w_cnt)
-							{
-								strcpy(ary[i+1].title, "\0");
-								strcpy(ary[i+1].mean, "\0");
-							}
-						}
-						(*w_cnt)--;
-						printf("@ it was deleted\n");
-					}
-					else if (a == 'y')
-					{
-						strcpy(subject2,ary[n].title);
-						strcat(subject2,".txt");
-						unlink(subject2);
-			
-						for (i = n; i <= *w_cnt; i++)
-						{
-							strcpy(ary[i].title, ary[i + 1].title);
-							strcpy(ary[i].mean,ary[i+1].mean);
-							if (i == *w_cnt)
-							{
-								strcpy(ary[i+1].title, "\0");
-								strcpy(ary[i+1].mean, "\0");
-							}
-						}
-						(*w_cnt)--;
-						printf("@ it was deleted.\n");
-					}
-					else if (a == 'N')
-					{
-						printf("@ deletion was canceled.\n");
-					}
-					else if (a== 'n')
-					{
-						printf("@ deletion was canceled.\n");
-					}
-				}
-				else
-				{
-					printf("@It is wrong message. Please re-enter Y or N\n");
-				}
-				while(getchar() != '\n');
-				n=0;
-				break;
-			}
-			else
-			{
-				n++;
-			}
+			wclear(target_wind);
+			box(target_wind,0,0);
+			mvwprintw(target_wind,LINES-5,1,"[PRESS ANY KEY TO QUIT]");
+			mvwprintw(target_wind,1,1,"%s",texts);
+			wrefresh(target_wind);
 		}
 	}
-	mygetch();
-	system("cls");
-	return;
-}
-int mygetch()
-{
-	int ch;
-	struct termios oldt;
-	struct termios newt;
-
-	tcgetattr(STDIN_FILENO,&oldt);
-
-	newt = oldt;
-	newt.c_lflag &= ~(ICANON|ECHO);
-	tcsetattr(STDIN_FILENO,TCSANOW,&newt);
-	ch = getchar();
-	tcsetattr(STDIN_FILENO,TCSANOW,&oldt);
-
-	return ch;
 }

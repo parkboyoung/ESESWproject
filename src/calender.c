@@ -1,4 +1,5 @@
 #include "calender.h"
+#include "shared_funcs.h"
 
 void calender_init (int *iyear, int *imonth)
 {
@@ -26,12 +27,18 @@ void calender_refresh (WINDOW *target_wind, int year, int month)
 	//endofwhile
 }
 
+void calender_refresh_menu (WINDOW *target_wind)
+{
+	mvwprintw(target_wind,0,0,"A,D = Change Month | W,S = Change Year\nZ = Calender | X = Memo | C = Timetable | V = Alarm | ESC = Quit");
+	wrefresh(target_wind);
+}
+
 void calender_print_calender(WINDOW *target_wind,int year,int month)
 {
- 	mvwprintw(target_wind,3,(COLS-2-9)/2,"[%4d/%2d]",year,month);
- 	mvwprintw(target_wind,4,(COLS-2-33)/2,"=================================");
- 	mvwprintw(target_wind,5,(COLS-2-33)/2,"SUN  MON  TUE  WED  THU  FRI  SAT");
- 	mvwprintw(target_wind,6,(COLS-2-33)/2,"=================================");
+ 	mvwprintw(target_wind,2,(COLS-9)/2,"[%4d/%2d]",year,month);
+ 	mvwprintw(target_wind,4,(COLS-33)/2,"=================================");
+ 	mvwprintw(target_wind,5,(COLS-33)/2,"SUN  MON  TUE  WED  THU  FRI  SAT");
+ 	mvwprintw(target_wind,6,(COLS-33)/2,"=================================");
 }
 
 int calender_allDayCheck(int year,int month)
@@ -122,43 +129,43 @@ void calender_printCalenderDay(WINDOW *target_wind,int num,int month,int year)
    			if(num==0)// start
    			{
     				num++;
-    				mvwprintw(target_wind,j,(COLS-2-33)/2,"%2d",i);
+    				mvwprintw(target_wind,j,(COLS-33)/2,"%2d",i);
     				i++;
    			}
    			else if(num == 1)
    			{
     				num++;
-    				mvwprintw(target_wind,j,(COLS-2-33)/2+5,"%2d",i);
+    				mvwprintw(target_wind,j,(COLS-33)/2+5,"%2d",i);
     				i++;
    			}
    			else if(num == 2)
    			{
     				num++;
-    				mvwprintw(target_wind,j,(COLS-2-33)/2+10,"%2d",i);
+    				mvwprintw(target_wind,j,(COLS-33)/2+10,"%2d",i);
     				i++;
    			}
    			else if(num == 3)
    			{
     				num++;
-    				mvwprintw(target_wind,j,(COLS-2-33)/2+15,"%2d",i);
+    				mvwprintw(target_wind,j,(COLS-33)/2+15,"%2d",i);
     				i++;
    			}
    			else if(num == 4)
    			{
     				num++;
-    				mvwprintw(target_wind,j,(COLS-2-33)/2+20,"%2d",i);
+    				mvwprintw(target_wind,j,(COLS-33)/2+20,"%2d",i);
     				i++;
    			}
    			else if(num == 5)
    			{
     				num++;
-    				mvwprintw(target_wind,j,(COLS-2-33)/2+25,"%2d",i);
+    				mvwprintw(target_wind,j,(COLS-33)/2+25,"%2d",i);
     				i++;
   			}
    			else if(num == 6)
    			{
     				num = 0;
-    				mvwprintw(target_wind,j,(COLS-2-33)/2+30,"%2d",i);
+    				mvwprintw(target_wind,j,(COLS-33)/2+30,"%2d",i);
     				i++;
    			}
   		}
