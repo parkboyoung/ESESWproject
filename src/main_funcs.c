@@ -39,6 +39,35 @@ WINDOW *init_menuwind()
                 
 ////////////////////////////////////////////////////////////////////////
 
+char wait_userinput_alarm(WINDOW *target_wind, char *alrm_mode)
+{
+	char ch = mygetch();
+	if ( check_userinput_checkchange(ch) == 0 )
+	{
+		if(ch == 27)
+		{
+			return 0;
+		}
+		else
+		{
+			if ( ch == 'a' || ch == 'A')
+			{
+				*alrm_mode = 1;
+			}
+			else if ( ch == 'd' || ch == 'D')
+			{
+				*alrm_mode = 2;
+			}
+			return 4;
+		}
+	}
+	else
+	{
+		return check_userinput_checkchange(ch);
+	}
+	return 0;
+}
+
 char wait_userinput_timetable(WINDOW *target_wind, char *table_mode)
 {
 	char ch = mygetch();

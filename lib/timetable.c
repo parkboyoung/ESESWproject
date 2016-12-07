@@ -5,12 +5,13 @@ void timetable_refresh (WINDOW *target_wind)
 {
 	char chbuf[3];
 	int fd_read;
-	int idx_i, idx_j, idx_k;
+	int idx_i, idx_j;
 	fd_read = open(".timetable",O_RDONLY);
 
-	mvwprintw(target_wind,2,(COLS-19)/2,"===================");
-	mvwprintw(target_wind,3,(COLS-19)/2,"MON TUE WED THU FRI");
+	mvwprintw(target_wind,2,(COLS-19)/2,"    [TIMETABLE]    ");
 	mvwprintw(target_wind,4,(COLS-19)/2,"===================");
+	mvwprintw(target_wind,5,(COLS-19)/2,"MON TUE WED THU FRI");
+	mvwprintw(target_wind,6,(COLS-19)/2,"===================");
 	if (fd_read != -1)
 	{
 		wmove(target_wind,5,(COLS-19)/2);
@@ -30,7 +31,7 @@ void timetable_refresh (WINDOW *target_wind)
 			}
 		}
 	}
-
+	
 	wrefresh(target_wind);
 }
 
@@ -46,11 +47,11 @@ void timetable_newtimetable (WINDOW *target_wind)
 	char table[9][5][3] = {0,};
 	char *date[5] = {"MON", "TUE" , "WED","THU","FRI"};
 	int fd_write = open(".timetable",O_WRONLY|O_CREAT|O_TRUNC,0666);
-
+	
 	wclear(target_wind);
 	box(target_wind,0,0);
 	wrefresh(target_wind);
-
+	
 	for(j=0;j<5;j++)
 	{
 		mvwprintw(target_wind,2,2,"%s",date[j]);

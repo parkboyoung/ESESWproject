@@ -1,5 +1,6 @@
 #ifndef CALENDER_H
 #define CALENDER_H
+
 #include <ncurses.h>
 #include <time.h>
 
