@@ -3,7 +3,7 @@ CC = gcc
 LIB = libfuncs.a
 OBJFILES = calender.o memo.o timetable.o alarm.o shared_funcs.o
 CFLAGS1 = -g -Wall
-CFLAGS2 = -lcurses -I../include
+CFLAGS2 = -lncurses -I../include
 
 $(LIB): $(OBJFILES)
 	$(AR) crv $(LIB) $(OBJFILES)

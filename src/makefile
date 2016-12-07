@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS1 = -g -Wall
 OBJFILES = main.o main_funcs.o
-CFLAGS2 = -L../lib -lfuncs -lcurses -I../include/
+CFLAGS2 = -L../lib -lfuncs -lncurses -I../include/
 
 APP: $(OBJFILES)
 	$(CC) -o APP $(CFLAGS1) $(OBJFILES) $(CFLAGS2) -lpthread
