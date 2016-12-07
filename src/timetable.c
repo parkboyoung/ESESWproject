@@ -30,7 +30,7 @@ void timetable_refresh (WINDOW *target_wind)
 			}
 		}
 	}
-	
+
 	wrefresh(target_wind);
 }
 
@@ -46,11 +46,11 @@ void timetable_newtimetable (WINDOW *target_wind)
 	char table[9][5][3] = {0,};
 	char *date[5] = {"MON", "TUE" , "WED","THU","FRI"};
 	int fd_write = open(".timetable",O_WRONLY|O_CREAT|O_TRUNC,0666);
-	
+
 	wclear(target_wind);
 	box(target_wind,0,0);
 	wrefresh(target_wind);
-	
+
 	for(j=0;j<5;j++)
 	{
 		mvwprintw(target_wind,2,2,"%s",date[j]);
