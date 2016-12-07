@@ -1,13 +1,14 @@
-CC = gcc
-CFLAGS1 = -g -Wall
-CFLAGS2 = -lncurses -Iinclude/
-OBJFILES = main.o main_funcs.o calender.o memo.o shared_funcs.o timetable.o
+DIRS = lib src 
+./PHONY: all clean
 
-APP:	$(OBJFILES)
-	gcc -o APP $(CFLAGS1) $(OBJFILES) $(CFLAGS2)
-
-%.o: src/%.c
-	$(CC) -o $@ $(CFLAGS1) -c $< $(CFLAGS2)
+all:
+	@for d in $(DIRS); \
+	do \
+		$(MAKE) -C $$d; \
+	done
 
 clean:
-	rm *.o APP
+	@for d in $(DIRS); \
+	do \
+		$(MAKE) -C $$d clean; \
+	done
